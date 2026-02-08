@@ -3,8 +3,8 @@
 	"package": "com.westeroscraft.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin",
 		"PlayerMountDataMixin",
+		"PlayerPetDataMixin",
 		"HorseInvoker"
 	],
 	"injectors": {

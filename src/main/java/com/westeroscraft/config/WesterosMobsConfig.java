@@ -15,14 +15,22 @@ public class WesterosMobsConfig {
     private static final Path CONFIG_FILE = Path.of("config/westerosmobs.json");
 
     public static MountConfig mount = new MountConfig();
+    public static PetConfig pet = new PetConfig();
 
     public static class MountConfig {
         public boolean enabled = true;
         public String permission = "westerosmobs.mount";
     }
 
+    public static class PetConfig {
+        public boolean enabled = true;
+        public String permission = "westerosmobs.pet";
+        public int maxPetsPerPlayer = 2;
+    }
+
     private static class ConfigData {
         MountConfig mount = new MountConfig();
+        PetConfig pet = new PetConfig();
     }
 
     public static void load() {
@@ -36,8 +44,13 @@ public class WesterosMobsConfig {
                 if (data.mount != null) {
                     mount = data.mount;
                 }
+                if (data.pet != null) {
+                    pet = data.pet;
+                }
                 LOGGER.info("Mount config: enabled={}, permission={}",
                     mount.enabled, mount.permission);
+                LOGGER.info("Pet config: enabled={}, permission={}, maxPets={}",
+                    pet.enabled, pet.permission, pet.maxPetsPerPlayer);
             } else {
                 saveDefaults();
             }

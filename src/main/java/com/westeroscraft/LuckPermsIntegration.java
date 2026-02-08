@@ -3,7 +3,7 @@ package com.westeroscraft;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
-import net.luckperms.api.query.QueryOptions;
+
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
@@ -12,7 +12,7 @@ import java.util.UUID;
  * Optional integration with LuckPerms for permission checks.
  */
 public class LuckPermsIntegration {
-    private static boolean available = false;
+    private static LuckPerms api = null;
     private static boolean checked = false;
 
     public static boolean isAvailable() {
@@ -20,15 +20,14 @@ public class LuckPermsIntegration {
             checked = true;
             try {
                 Class.forName("net.luckperms.api.LuckPermsProvider");
-                LuckPermsProvider.get();
-                available = true;
+                api = LuckPermsProvider.get();
                 WesterosMobs.LOGGER.info("LuckPerms integration enabled");
             } catch (ClassNotFoundException | IllegalStateException e) {
-                available = false;
+                api = null;
                 WesterosMobs.LOGGER.info("LuckPerms not found, permission integration disabled");
             }
         }
-        return available;
+        return api != null;
     }
 
     /**
@@ -61,13 +60,12 @@ public class LuckPermsIntegration {
             return false;
         }
         try {
-            LuckPerms luckPerms = LuckPermsProvider.get();
-            User user = luckPerms.getUserManager().getUser(playerUuid);
+            User user = api.getUserManager().getUser(playerUuid);
             if (user == null) {
                 return false;
             }
             return user.getCachedData()
-                    .getPermissionData(QueryOptions.nonContextual())
+                    .getPermissionData(user.getQueryOptions())
                     .checkPermission(permission)
                     .asBoolean();
         } catch (Exception e) {
