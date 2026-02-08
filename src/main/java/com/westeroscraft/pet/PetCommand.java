@@ -33,12 +33,14 @@ public class PetCommand {
                 // /wcm - show help
                 .executes(PetCommand::showHelp)
 
-                // /wcm summon [type] - summon active pet or create new one
+                // /wcm summon [type] [name] - summon active pet or create new one
                 .then(CommandManager.literal("summon")
                         .executes(PetCommand::summonActivePet)
                         .then(CommandManager.argument("type", StringArgumentType.word())
                                 .suggests(PET_TYPE_SUGGESTIONS)
-                                .executes(PetCommand::summonNewPet)))
+                                .executes(PetCommand::summonNewPet)
+                                .then(CommandManager.argument("name", StringArgumentType.greedyString())
+                                        .executes(PetCommand::summonNewPet))))
 
                 // /wcm dismiss - despawn active pet
                 .then(CommandManager.literal("dismiss")
@@ -69,12 +71,14 @@ public class PetCommand {
 
                 // /wcm admin - admin commands
                 .then(CommandManager.literal("admin")
-                        // /wcm admin give <player> <type>
+                        // /wcm admin give <player> <type> [name]
                         .then(CommandManager.literal("give")
                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                         .then(CommandManager.argument("type", StringArgumentType.word())
                                                 .suggests(PET_TYPE_SUGGESTIONS)
-                                                .executes(PetCommand::adminGivePet))))
+                                                .executes(PetCommand::adminGivePet)
+                                                .then(CommandManager.argument("name", StringArgumentType.greedyString())
+                                                        .executes(PetCommand::adminGivePet)))))
                         // /wcm admin remove <player> <number>
                         .then(CommandManager.literal("remove")
                                 .then(CommandManager.argument("player", StringArgumentType.word())
@@ -106,7 +110,7 @@ public class PetCommand {
 
         ServerPlayerEntity player = (ServerPlayerEntity) source.getEntity();
 
-        if (!checkPermission(player, WesterosMobsConfig.pet.permission, source)) {
+        if (!checkPermission(player, "westerosmobs.pet", source)) {
             return 0;
         }
 
@@ -152,7 +156,7 @@ public class PetCommand {
         String typeId = StringArgumentType.getString(context, "type");
 
         // Check permission for specific pet type
-        String typePermission = WesterosMobsConfig.pet.permission + "." + typeId;
+        String typePermission = "westerosmobs.pet." + typeId;
         if (!checkPermission(player, typePermission, source)) {
             return 0;
         }
@@ -168,17 +172,19 @@ public class PetCommand {
             PetManager.dismissPet(player);
         }
 
-        // Check pet limit
+        // Check one-per-type limit
         PetSaveData saveData = PetSaveData.get(player.getServer());
         List<Pet> existingPets = saveData.getPetsByOwner(player.getUuid());
-        if (existingPets.size() >= WesterosMobsConfig.pet.maxPetsPerPlayer) {
-            source.sendError(Text.literal("You have reached the maximum number of pets (" +
-                    WesterosMobsConfig.pet.maxPetsPerPlayer + ")."));
-            return 0;
+        for (Pet existing : existingPets) {
+            if (existing.getType() == type) {
+                source.sendError(Text.literal("You already have a " + type.getId() + "."));
+                return 0;
+            }
         }
 
         // Create and summon new pet
-        Pet pet = PetManager.createPet(player, type);
+        String name = getOptionalString(context, "name");
+        Pet pet = PetManager.createPet(player, type, name);
         if (PetManager.summonPet(player, pet)) {
             source.sendFeedback(() -> Text.literal("A new " + type.getId() + " has joined you!"), false);
             return 1;
@@ -431,7 +437,18 @@ public class PetCommand {
             return 0;
         }
 
-        Pet pet = PetManager.createPet(targetPlayer, type);
+        // Check one-per-type limit
+        PetSaveData saveData = PetSaveData.get(source.getServer());
+        List<Pet> existingPets = saveData.getPetsByOwner(targetPlayer.getUuid());
+        for (Pet existing : existingPets) {
+            if (existing.getType() == type) {
+                source.sendError(Text.literal(playerName + " already has a " + type.getId() + "."));
+                return 0;
+            }
+        }
+
+        String name = getOptionalString(context, "name");
+        Pet pet = PetManager.createPet(targetPlayer, type, name);
         source.sendFeedback(() -> Text.literal("Gave a " + type.getId() + " to " + playerName), false);
         targetPlayer.sendMessage(Text.literal("An admin has given you a new " + type.getId() + "!"), false);
 
@@ -482,7 +499,7 @@ public class PetCommand {
             return false;
         }
 
-        if (!WesterosMobsConfig.pet.enabled) {
+        if (!WesterosMobsConfig.petEnabled) {
             source.sendError(Text.literal("The pet system is disabled."));
             return false;
         }
@@ -496,5 +513,13 @@ public class PetCommand {
             return false;
         }
         return true;
+    }
+
+    private static String getOptionalString(CommandContext<ServerCommandSource> context, String argName) {
+        try {
+            return StringArgumentType.getString(context, argName);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

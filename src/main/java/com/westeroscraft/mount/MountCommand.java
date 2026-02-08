@@ -25,13 +25,13 @@ public class MountCommand {
                     }
 
                     // Check if mount system is enabled
-                    if (!WesterosMobsConfig.mount.enabled) {
+                    if (!WesterosMobsConfig.mountEnabled) {
                         source.sendError(Text.literal("The mount command is disabled."));
                         return 0;
                     }
 
                     // Check permission (fail-open)
-                    if (!LuckPermsIntegration.hasPermission(player, WesterosMobsConfig.mount.permission)) {
+                    if (!LuckPermsIntegration.hasPermission(player, "westerosmobs.mount")) {
                         source.sendError(Text.literal("You don't have permission to use this command."));
                         return 0;
                     }

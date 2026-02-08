@@ -144,7 +144,7 @@ public class PetManager {
      * @return true if successful
      */
     public static boolean summonPet(ServerPlayerEntity player, Pet pet) {
-        if (!WesterosMobsConfig.pet.enabled) {
+        if (!WesterosMobsConfig.petEnabled) {
             return false;
         }
 
@@ -205,9 +205,12 @@ public class PetManager {
     /**
      * Create a new pet for a player.
      */
-    public static Pet createPet(ServerPlayerEntity player, PetType type) {
+    public static Pet createPet(ServerPlayerEntity player, PetType type, String name) {
         UUID petUuid = UUID.randomUUID();
         Pet pet = new Pet(petUuid, player.getUuid(), type);
+        if (name != null && !name.isBlank()) {
+            pet.setCustomName(name);
+        }
 
         // Add to world save data
         PetSaveData saveData = PetSaveData.get(player.getServer());

@@ -73,7 +73,7 @@ public class MountManager {
      * Spawn a tamed, saddled horse near the player.
      */
     public static void spawnMount(ServerPlayerEntity player) {
-        if (!WesterosMobsConfig.mount.enabled) {
+        if (!WesterosMobsConfig.mountEnabled) {
             return;
         }
 

@@ -14,23 +14,12 @@ public class WesterosMobsConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_FILE = Path.of("config/westerosmobs.json");
 
-    public static MountConfig mount = new MountConfig();
-    public static PetConfig pet = new PetConfig();
-
-    public static class MountConfig {
-        public boolean enabled = true;
-        public String permission = "westerosmobs.mount";
-    }
-
-    public static class PetConfig {
-        public boolean enabled = true;
-        public String permission = "westerosmobs.pet";
-        public int maxPetsPerPlayer = 2;
-    }
+    public static boolean mountEnabled = true;
+    public static boolean petEnabled = true;
 
     private static class ConfigData {
-        MountConfig mount = new MountConfig();
-        PetConfig pet = new PetConfig();
+        boolean mountEnabled = true;
+        boolean petEnabled = true;
     }
 
     public static void load() {
@@ -41,16 +30,9 @@ public class WesterosMobsConfig {
                 String json = Files.readString(CONFIG_FILE);
                 ConfigData data = GSON.fromJson(json, ConfigData.class);
                 save(data);
-                if (data.mount != null) {
-                    mount = data.mount;
-                }
-                if (data.pet != null) {
-                    pet = data.pet;
-                }
-                LOGGER.info("Mount config: enabled={}, permission={}",
-                    mount.enabled, mount.permission);
-                LOGGER.info("Pet config: enabled={}, permission={}, maxPets={}",
-                    pet.enabled, pet.permission, pet.maxPetsPerPlayer);
+                mountEnabled = data.mountEnabled;
+                petEnabled = data.petEnabled;
+                LOGGER.info("Config: mountEnabled={}, petEnabled={}", mountEnabled, petEnabled);
             } else {
                 saveDefaults();
             }
