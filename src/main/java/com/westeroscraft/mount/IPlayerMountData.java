@@ -7,11 +7,19 @@ import java.util.UUID;
  */
 public interface IPlayerMountData {
 
-    boolean westerosmobs$hasMount();
-
-    void westerosmobs$setHasMount(boolean value);
-
     UUID westerosmobs$getMountUuid();
 
     void westerosmobs$setMountUuid(UUID uuid);
+
+    String westerosmobs$getMountName();
+
+    void westerosmobs$setMountName(String name);
+
+    int westerosmobs$getMountColor();
+
+    void westerosmobs$setMountColor(int color);
+
+    int westerosmobs$getMountMarking();
+
+    void westerosmobs$setMountMarking(int marking);
 }

@@ -15,11 +15,9 @@ public class WesterosMobsConfig {
     private static final Path CONFIG_FILE = Path.of("config/westerosmobs.json");
 
     public static boolean mountEnabled = true;
-    public static boolean petEnabled = true;
 
     private static class ConfigData {
         boolean mountEnabled = true;
-        boolean petEnabled = true;
     }
 
     public static void load() {
@@ -31,8 +29,7 @@ public class WesterosMobsConfig {
                 ConfigData data = GSON.fromJson(json, ConfigData.class);
                 save(data);
                 mountEnabled = data.mountEnabled;
-                petEnabled = data.petEnabled;
-                LOGGER.info("Config: mountEnabled={}, petEnabled={}", mountEnabled, petEnabled);
+                LOGGER.info("Config: mountEnabled={}", mountEnabled);
             } else {
                 saveDefaults();
             }

@@ -18,20 +18,16 @@ import java.util.UUID;
 public abstract class PlayerMountDataMixin implements IPlayerMountData {
 
     @Unique
-    private boolean westerosmobs_hasMount = false;
-
-    @Unique
     private UUID westerosmobs_mountUuid = null;
 
-    @Override
-    public boolean westerosmobs$hasMount() {
-        return westerosmobs_hasMount;
-    }
+    @Unique
+    private String westerosmobs_mountName = null;
 
-    @Override
-    public void westerosmobs$setHasMount(boolean value) {
-        this.westerosmobs_hasMount = value;
-    }
+    @Unique
+    private int westerosmobs_mountColor = -1;
+
+    @Unique
+    private int westerosmobs_mountMarking = -1;
 
     @Override
     public UUID westerosmobs$getMountUuid() {
@@ -43,21 +39,61 @@ public abstract class PlayerMountDataMixin implements IPlayerMountData {
         this.westerosmobs_mountUuid = uuid;
     }
 
+    @Override
+    public String westerosmobs$getMountName() {
+        return westerosmobs_mountName;
+    }
+
+    @Override
+    public void westerosmobs$setMountName(String name) {
+        this.westerosmobs_mountName = name;
+    }
+
+    @Override
+    public int westerosmobs$getMountColor() {
+        return westerosmobs_mountColor;
+    }
+
+    @Override
+    public void westerosmobs$setMountColor(int color) {
+        this.westerosmobs_mountColor = color;
+    }
+
+    @Override
+    public int westerosmobs$getMountMarking() {
+        return westerosmobs_mountMarking;
+    }
+
+    @Override
+    public void westerosmobs$setMountMarking(int marking) {
+        this.westerosmobs_mountMarking = marking;
+    }
+
     @Inject(method = "writeCustomDataToNbt", at = @At("HEAD"))
     private void westerosmobs_writeData(NbtCompound nbt, CallbackInfo ci) {
-        nbt.putBoolean("westerosmobs.hasMount", westerosmobs_hasMount);
         if (westerosmobs_mountUuid != null) {
             nbt.putUuid("westerosmobs.mountUuid", westerosmobs_mountUuid);
         }
+        if (westerosmobs_mountName != null) {
+            nbt.putString("westerosmobs.mountName", westerosmobs_mountName);
+        }
+        nbt.putInt("westerosmobs.mountColor", westerosmobs_mountColor);
+        nbt.putInt("westerosmobs.mountMarking", westerosmobs_mountMarking);
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
     private void westerosmobs_readData(NbtCompound nbt, CallbackInfo ci) {
-        westerosmobs_hasMount = nbt.getBoolean("westerosmobs.hasMount");
         if (nbt.containsUuid("westerosmobs.mountUuid")) {
             westerosmobs_mountUuid = nbt.getUuid("westerosmobs.mountUuid");
         } else {
             westerosmobs_mountUuid = null;
         }
+        if (nbt.contains("westerosmobs.mountName")) {
+            westerosmobs_mountName = nbt.getString("westerosmobs.mountName");
+        } else {
+            westerosmobs_mountName = null;
+        }
+        westerosmobs_mountColor = nbt.contains("westerosmobs.mountColor") ? nbt.getInt("westerosmobs.mountColor") : -1;
+        westerosmobs_mountMarking = nbt.contains("westerosmobs.mountMarking") ? nbt.getInt("westerosmobs.mountMarking") : -1;
     }
 }

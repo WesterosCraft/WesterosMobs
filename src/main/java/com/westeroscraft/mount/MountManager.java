@@ -11,6 +11,7 @@ import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,6 @@ public class MountManager {
                         horse.discard();
                         LOGGER.info("Despawned mount {} for disconnecting player {}", horseUuid, player.getName().getString());
                     }
-                    // Clear the mount data
-                    mountData.westerosmobs$setHasMount(false);
                     mountData.westerosmobs$setMountUuid(null);
                 });
             }
@@ -66,7 +65,31 @@ public class MountManager {
      * Check if a player has an active mount.
      */
     public static boolean hasMount(ServerPlayerEntity player) {
-        return ((IPlayerMountData) player).westerosmobs$hasMount();
+        return ((IPlayerMountData) player).westerosmobs$getMountUuid() != null;
+    }
+
+    /**
+     * Teleport existing mount to player, or spawn a new one.
+     * Handles ghost mounts (stale UUID) by clearing data and respawning.
+     */
+    public static void teleportOrSpawnMount(ServerPlayerEntity player) {
+        IPlayerMountData mountData = (IPlayerMountData) player;
+        UUID horseUuid = mountData.westerosmobs$getMountUuid();
+
+        if (horseUuid != null) {
+            ServerWorld world = player.getServerWorld();
+            if (world.getEntity(horseUuid) instanceof HorseEntity horse) {
+                horse.refreshPositionAndAngles(
+                    player.getX(), player.getY(), player.getZ(),
+                    player.getYaw(), 0.0F);
+                return;
+            }
+            // Ghost mount: entity gone, clear stale data, fall through to spawn
+            LOGGER.warn("Mount {} for player {} not found, respawning",
+                horseUuid, player.getName().getString());
+            mountData.westerosmobs$setMountUuid(null);
+        }
+        spawnMount(player);
     }
 
     /**
@@ -82,14 +105,26 @@ public class MountManager {
         // Create horse entity using constructor
         HorseEntity horse = new HorseEntity(EntityType.HORSE, world);
 
-        // Randomize the horse's appearance
-        Random random = world.getRandom();
-        HorseColor[] variants = HorseColor.values();
-        HorseMarking[] markings = HorseMarking.values();
-        ((HorseInvoker) horse).invokeSetVariant(
-                variants[random.nextInt(variants.length)],
-                markings[random.nextInt(markings.length)]
-        );
+        // Use saved appearance or randomize on first spawn
+        IPlayerMountData mountData = (IPlayerMountData) player;
+        int savedColor = mountData.westerosmobs$getMountColor();
+        int savedMarking = mountData.westerosmobs$getMountMarking();
+
+        HorseColor color;
+        HorseMarking marking;
+        if (savedColor >= 0 && savedMarking >= 0) {
+            color = HorseColor.byId(savedColor);
+            marking = HorseMarking.byIndex(savedMarking);
+        } else {
+            Random random = world.getRandom();
+            HorseColor[] variants = HorseColor.values();
+            HorseMarking[] markingValues = HorseMarking.values();
+            color = variants[random.nextInt(variants.length)];
+            marking = markingValues[random.nextInt(markingValues.length)];
+            mountData.westerosmobs$setMountColor(color.getId());
+            mountData.westerosmobs$setMountMarking(marking.getId());
+        }
+        ((HorseInvoker) horse).invokeSetVariant(color, marking);
 
         // Position horse at player's location with player's rotation
         horse.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0.0F);
@@ -97,16 +132,21 @@ public class MountManager {
         // Tame the horse and set owner
         horse.setTame(true);
         horse.setOwnerUuid(player.getUuid());
+        horse.setPersistent();    // Prevent despawn checks from removing the horse
+        horse.setInvulnerable(true);  // Prevent death from damage
 
         // Equip saddle
         horse.saddle(new ItemStack(Items.SADDLE), SoundCategory.NEUTRAL);
 
+        // Apply custom name if the player has one saved
+        String customName = mountData.westerosmobs$getMountName();
+        if (customName != null) {
+            horse.setCustomName(Text.literal(customName));
+            horse.setCustomNameVisible(true);
+        }
+
         // Add horse to the world
         world.spawnEntity(horse);
-
-        // Track the horse on player data (persisted)
-        IPlayerMountData mountData = (IPlayerMountData) player;
-        mountData.westerosmobs$setHasMount(true);
         mountData.westerosmobs$setMountUuid(horse.getUuid());
 
         LOGGER.info("Spawned mount for player {} (horse UUID: {})", player.getName().getString(), horse.getUuid());
@@ -129,8 +169,6 @@ public class MountManager {
             LOGGER.info("Despawned mount {} for player {}", horseUuid, player.getName().getString());
         }
 
-        // Clear the mount data
-        mountData.westerosmobs$setHasMount(false);
         mountData.westerosmobs$setMountUuid(null);
     }
 
@@ -139,5 +177,21 @@ public class MountManager {
      */
     public static void despawnMount(ServerPlayerEntity player) {
         despawnMount(player, player.getServerWorld());
+    }
+
+    /**
+     * Set the horse name and update the live entity if one is spawned.
+     */
+    public static void renameMount(ServerPlayerEntity player, String name) {
+        IPlayerMountData mountData = (IPlayerMountData) player;
+        mountData.westerosmobs$setMountName(name);
+        UUID horseUuid = mountData.westerosmobs$getMountUuid();
+        if (horseUuid != null) {
+            ServerWorld world = player.getServerWorld();
+            if (world.getEntity(horseUuid) instanceof HorseEntity horse) {
+                horse.setCustomName(Text.literal(name));
+                horse.setCustomNameVisible(true);
+            }
+        }
     }
 }
