@@ -10,9 +10,6 @@ import net.minecraft.text.Text;
 import com.westeroscraft.LuckPermsIntegration;
 import com.westeroscraft.config.WesterosMobsConfig;
 
-/**
- * Registers and handles the /horse command.
- */
 public class MountCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
@@ -30,12 +27,10 @@ public class MountCommand {
             source.sendError(Text.literal("This command can only be used by players."));
             return 0;
         }
-
         if (!WesterosMobsConfig.mountEnabled) {
             source.sendError(Text.literal("The mount command is disabled."));
             return 0;
         }
-
         if (!player.hasPermissionLevel(2) && !LuckPermsIntegration.hasPermission(player, "westerosmobs.horse")) {
             source.sendError(Text.literal("You don't have permission to use this command."));
             return 0;
@@ -44,11 +39,8 @@ public class MountCommand {
         MountManager.teleportOrSpawnMount(player);
         IPlayerMountData mountData = (IPlayerMountData) player;
         String horseName = mountData.westerosmobs$getMountName();
-        if (horseName != null) {
-            source.sendFeedback(() -> Text.literal(horseName + " has been summoned!"), false);
-        } else {
-            source.sendFeedback(() -> Text.literal("Your horse has been summoned!"), false);
-        }
+        source.sendFeedback(() -> Text.literal(
+                horseName != null ? horseName + " has been summoned!" : "Your horse has been summoned!"), false);
         return 1;
     }
 
@@ -59,14 +51,12 @@ public class MountCommand {
             source.sendError(Text.literal("This command can only be used by players."));
             return 0;
         }
-
         if (!WesterosMobsConfig.mountEnabled) {
             source.sendError(Text.literal("The mount command is disabled."));
             return 0;
         }
-
-        if (!player.hasPermissionLevel(2) && !LuckPermsIntegration.hasPermission(player, "westerosmobs.horse")) {
-            source.sendError(Text.literal("You don't have permission to use this command."));
+        if (!player.hasPermissionLevel(2) && !LuckPermsIntegration.hasPermission(player, "westerosmobs.horse.name")) {
+            source.sendError(Text.literal("You don't have permission to name your horse."));
             return 0;
         }
 

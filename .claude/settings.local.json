@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:docs.fabricmc.net)",
+      "WebSearch",
+      "WebFetch(domain:wiki.fabricmc.net)",
+      "Read(//home/geeberry/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2/**)",
+      "Bash(javap -classpath minecraft-merged-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar net.minecraft.entity.passive.HorseColor)",
+      "Bash(javap -classpath minecraft-merged-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar net.minecraft.entity.passive.HorseMarking)",
+      "Bash(jar tf:*)",
+      "Bash(jar xf:*)",
+      "Bash(javap -classpath /tmp/net/minecraft/client/gui/screen/Screen.class -public)",
+      "WebFetch(domain:maven.fabricmc.net)",
+      "WebFetch(domain:moddedmc.wiki)",
+      "WebFetch(domain:wiki.azuredoom.com)",
+      "WebFetch(domain:cloudsmith.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(cd /tmp)",
+      "Bash(javap -p \"net/minecraft/client/gui/DrawContext.class\")",
+      "Bash(ls -la assets/minecraft/textures/gui/container/ assets/minecraft/textures/gui/sprites/container/horse/)"
+    ]
+  }
+}

@@ -17,6 +17,9 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 	mavenCentral()
+	maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
+	maven { url = "https://maven.azuredoom.com/mods" }
+
 }
 
 fabricApi {
@@ -34,8 +37,12 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// AzureLib animation engine
+	modImplementation "mod.azure.azurelib:azurelib-fabric-1.21.1:${project.azurelib_version}"
+
 	// LuckPerms API (optional integration)
 	compileOnly 'net.luckperms:api:5.4'
+	modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${devauth_version}")
 }
 
 processResources {
